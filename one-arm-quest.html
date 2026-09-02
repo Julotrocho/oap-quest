@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>One Arm Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#161B21;
+    --bg-elev:#20272F;
+    --bg-elev-2:#2A323C;
+    --text:#EDEAE3;
+    --text-dim:#8E99A6;
+    --teal:#3FBFB5;
+    --teal-dim:rgba(63,191,181,.14);
+    --gold:#E8B33D;
+    --gold-dim:rgba(232,179,61,.14);
+    --border:#323B46;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;}
+  body{min-height:100vh; padding-bottom:78px;}
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+  .wrap{max-width:480px;margin:0 auto;padding:20px 18px 8px;}
+
+  /* HEADER */
+  .header{padding:22px 18px 18px;border-bottom:1px solid var(--border);}
+  .brand{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
+  .brand .display{font-size:1.05rem;font-weight:700;letter-spacing:.2px;}
+  .countdown{font-size:.8rem;color:var(--text-dim);}
+  .countdown b{color:var(--gold);font-weight:600;}
+  .levelrow{display:flex;align-items:center;gap:10px;margin-top:4px;}
+  .levelname{font-size:.92rem;font-weight:600;color:var(--gold);white-space:nowrap;}
+  .xpbar-track{flex:1;height:8px;border-radius:5px;background:var(--bg-elev-2);overflow:hidden;}
+  .xpbar-fill{height:100%;background:linear-gradient(90deg,var(--gold),#F5CE6B);border-radius:5px;transition:width .5s ease;}
+  .xptext{font-size:.72rem;color:var(--text-dim);white-space:nowrap;}
+  .streak{display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-size:.78rem;color:var(--text-dim);}
+  .streak b{color:var(--teal);font-weight:700;}
+
+  .tabbody{padding:18px;min-height:60vh;}
+  .card{background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+  .card h3{margin:0 0 10px;font-size:1rem;font-weight:600;}
+  .muted{color:var(--text-dim);font-size:.85rem;line-height:1.5;}
+
+  /* TODAY - hero session picker */
+  .hero{background:linear-gradient(155deg,var(--bg-elev-2),var(--bg-elev));border:1px solid var(--border);border-radius:var(--radius);padding:20px 18px;margin-bottom:16px;}
+  .hero-phase{font-size:.75rem;color:var(--teal);font-weight:600;margin-bottom:4px;}
+  .hero-title{font-size:1.3rem;font-weight:700;margin:0 0 6px;}
+  .hero-desc{font-size:.86rem;color:var(--text-dim);line-height:1.5;margin-bottom:16px;}
+  .session-picker{display:flex;gap:8px;}
+  .session-btn{flex:1;padding:12px 6px;border-radius:10px;border:1px solid var(--border);background:var(--bg-elev);color:var(--text);font-family:'Inter';font-weight:600;font-size:.82rem;cursor:pointer;text-align:center;}
+  .session-btn.active{border-color:var(--teal);background:var(--teal-dim);color:var(--teal);}
+  .session-btn .sub{display:block;font-weight:400;font-size:.7rem;color:var(--text-dim);margin-top:2px;}
+
+  .exlist{list-style:none;margin:0;padding:0;}
+  .ex{padding:12px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;}
+  .ex:last-child{border-bottom:none;}
+  .ex-check{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--border);flex-shrink:0;margin-top:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--bg-elev-2);}
+  .ex-check.checked{background:var(--teal);border-color:var(--teal);}
+  .ex-check.checked::after{content:'✓';color:#0E1418;font-weight:700;font-size:.8rem;}
+  .ex-main{flex:1;}
+  .ex-name{font-size:.9rem;font-weight:600;}
+  .ex-target{font-size:.78rem;color:var(--text-dim);margin-top:1px;}
+  .ex-input{margin-top:8px;display:flex;align-items:center;gap:6px;}
+  .ex-input input{width:70px;background:var(--bg-elev-2);border:1px solid var(--border);border-radius:8px;padding:6px 8px;color:var(--text);font-family:'Inter';font-size:.85rem;}
+  .ex-input span{font-size:.75rem;color:var(--text-dim);}
+
+  .validate-btn{width:100%;margin-top:16px;padding:14px;border-radius:10px;border:none;background:var(--teal);color:#0E1418;font-family:'Space Grotesk';font-weight:700;font-size:.95rem;cursor:pointer;}
+  .validate-btn:active{transform:scale(0.98);}
+
+  .final-cta{width:100%;padding:14px;border-radius:10px;border:1.5px dashed var(--gold);background:var(--gold-dim);color:var(--gold);font-family:'Space Grotesk';font-weight:700;font-size:.9rem;cursor:pointer;margin-top:6px;}
+
+  /* PROGRAM */
+  .phase-block{margin-bottom:14px;}
+  .phase-block.locked{opacity:.5;}
+  .phase-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .phase-header .pname{font-weight:700;font-size:.95rem;}
+  .phase-header .pweeks{font-size:.72rem;color:var(--text-dim);}
+  .sess-mini{font-size:.8rem;color:var(--text-dim);margin:4px 0;padding-left:14px;position:relative;}
+  .sess-mini::before{content:'—';position:absolute;left:0;color:var(--border);}
+
+  /* PROGRESS */
+  .chart-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .chart-label{width:64px;font-size:.72rem;color:var(--text-dim);flex-shrink:0;}
+  .chart-bar-track{flex:1;height:22px;background:var(--bg-elev-2);border-radius:6px;overflow:hidden;}
+  .chart-bar-fill{height:100%;background:var(--teal);border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;}
+  .chart-bar-fill span{font-size:.7rem;font-weight:700;color:#0E1418;}
+  .empty-state{text-align:center;padding:30px 10px;color:var(--text-dim);font-size:.85rem;}
+
+  /* BADGES */
+  .badge-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .badge{border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;background:var(--bg-elev-2);}
+  .badge.unlocked{border-color:var(--gold);background:var(--gold-dim);}
+  .badge-icon{font-size:1.5rem;margin-bottom:6px;}
+  .badge-name{font-size:.78rem;font-weight:700;}
+  .badge-desc{font-size:.68rem;color:var(--text-dim);margin-top:3px;line-height:1.3;}
+
+  /* NAV */
+  .nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg-elev);border-top:1px solid var(--border);display:flex;max-width:480px;margin:0 auto;}
+  .nav-btn{flex:1;padding:12px 4px 10px;text-align:center;background:none;border:none;color:var(--text-dim);font-family:'Inter';font-size:.68rem;cursor:pointer;}
+  .nav-btn .ic{font-size:1.15rem;display:block;margin-bottom:2px;}
+  .nav-btn.active{color:var(--teal);}
+
+  .tab{display:none;}
+  .tab.active{display:block;}
+
+  .toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--gold);color:#0E1418;padding:10px 18px;border-radius:10px;font-weight:700;font-size:.85rem;opacity:0;transition:all .35s ease;z-index:50;max-width:90%;text-align:center;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .celebrate-overlay{position:fixed;inset:0;background:rgba(14,20,24,.94);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:100;text-align:center;padding:30px;}
+  .celebrate-overlay.show{display:flex;}
+  .celebrate-overlay .big{font-size:3rem;margin-bottom:10px;}
+  .celebrate-overlay h2{font-size:1.5rem;margin:0 0 8px;color:var(--gold);}
+  .celebrate-overlay p{color:var(--text-dim);font-size:.9rem;max-width:300px;}
+  .celebrate-overlay button{margin-top:22px;padding:12px 24px;border-radius:10px;border:none;background:var(--teal);color:#0E1418;font-weight:700;font-family:'Space Grotesk';cursor:pointer;}
+
+  .gear-btn{background:none;border:none;color:var(--text-dim);font-size:1.15rem;cursor:pointer;padding:4px;}
+
+  .weekrow{display:flex;align-items:center;gap:8px;margin-top:10px;}
+  .weekrow-label{font-size:.72rem;color:var(--text-dim);white-space:nowrap;}
+  .weekdots{display:flex;gap:5px;}
+  .weekdot{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--border);background:var(--bg-elev-2);}
+  .weekdot.filled{background:var(--teal);border-color:var(--teal);}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(14,20,24,.85);display:none;align-items:flex-end;justify-content:center;z-index:90;}
+  .modal-overlay.show{display:flex;}
+  .modal-sheet{background:var(--bg-elev);border-radius:18px 18px 0 0;padding:20px 18px 28px;width:100%;max-width:480px;border-top:1px solid var(--border);}
+  .modal-sheet h3{margin:0 0 14px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:.8rem;color:var(--text-dim);margin-bottom:6px;}
+  .field input, .field select{width:100%;background:var(--bg-elev-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'Inter';font-size:.9rem;}
+  .field .hint{font-size:.7rem;color:var(--text-dim);margin-top:5px;line-height:1.4;}
+  .modal-save{width:100%;padding:13px;border-radius:10px;border:none;background:var(--teal);color:#0E1418;font-weight:700;font-family:'Space Grotesk';cursor:pointer;margin-top:4px;}
+
+  .warmup-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+  .warmup-head h3{margin:0;font-size:.92rem;display:flex;align-items:center;gap:6px;}
+  .warmup-chevron{color:var(--text-dim);font-size:.8rem;transition:transform .2s;}
+  .warmup-chevron.open{transform:rotate(180deg);}
+  .warmup-body{overflow:hidden;max-height:0;transition:max-height .3s ease;}
+  .warmup-body.open{max-height:600px;margin-top:10px;}
+  .warmup-note{font-size:.72rem;color:var(--text-dim);margin-top:6px;line-height:1.4;}
+</style>
+</head>
+<body>
+
+<div class="wrap" style="padding:0;">
+  <div class="header">
+    <div class="brand">
+      <div class="display" id="brandTitle">One Arm Quest</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="countdown" id="countdown"></div>
+        <button class="gear-btn" onclick="openSettings()">⚙️</button>
+      </div>
+    </div>
+    <div class="levelrow">
+      <div class="levelname" id="levelName">—</div>
+      <div class="xpbar-track"><div class="xpbar-fill" id="xpFill" style="width:0%"></div></div>
+      <div class="xptext" id="xpText">0 XP</div>
+    </div>
+    <div class="streak" id="streakText">🔥 <b>0</b> jour de suite</div>
+    <div class="weekrow">
+      <div class="weekrow-label" id="weekLabel">0/3 séances cette semaine</div>
+      <div class="weekdots" id="weekDots"></div>
+    </div>
+  </div>
+</div>
+
+<div class="tabbody">
+  <div id="tab-today" class="tab active"></div>
+  <div id="tab-program" class="tab"></div>
+  <div id="tab-progress" class="tab"></div>
+  <div id="tab-badges" class="tab"></div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" data-tab="today"><span class="ic">🎯</span>Aujourd'hui</button>
+  <button class="nav-btn" data-tab="program"><span class="ic">🗺️</span>Programme</button>
+  <button class="nav-btn" data-tab="progress"><span class="ic">📈</span>Progression</button>
+  <button class="nav-btn" data-tab="badges"><span class="ic">🏅</span>Badges</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="celebrate-overlay" id="celebrateOverlay">
+  <div class="big">🏆</div>
+  <h2>TRACTION À UN BRAS VALIDÉE</h2>
+  <p id="celebrateText">Objectif atteint. Franchement, respect.</p>
+  <button onclick="closeCelebrate()">Continuer</button>
+</div>
+
+<div class="modal-overlay" id="settingsOverlay">
+  <div class="modal-sheet">
+    <h3>Réglages</h3>
+    <div class="field">
+      <label>Ton max actuel en traction lestée (1 rep)</label>
+      <input type="number" step="0.5" id="inputOneRM">
+      <div class="hint">Utilisé pour calculer les charges de travail (%) dans le programme. Remets-le à jour dès que tu bats un nouveau max.</div>
+    </div>
+    <div class="field">
+      <label>Séances par semaine visées</label>
+      <select id="inputWeeklyTarget">
+        <option value="2">2x / semaine</option>
+        <option value="3">3x / semaine</option>
+        <option value="4">4x / semaine</option>
+        <option value="5">5x / semaine</option>
+      </select>
+    </div>
+    <button class="modal-save" onclick="saveSettings()">Enregistrer</button>
+  </div>
+</div>
+
+<script>
+/* ---------------- PROGRAM DATA ---------------- */
+const PROGRAM = {
+  phases: [
+    {
+      id:'p1', name:'Phase 1 — Fondations & évaluation', weeks:[1,3],
+      desc:"On pose des repères précis avant de charger le volume : tes maxs actuels en lesté, ta tenue en suspension à un bras, et le contrôle de tes négatives.",
+      sessions:{
+        A:{title:'Force lestée', exercises:[
+          {id:'echauf_a1', name:'Échauffement coiffe des rotateurs', target:'2x15 (élastique)', type:'check'},
+          {id:'pu_lourd', name:'Tractions lestées lourdes', target:'5x3 @ ~40kg (RPE8)', type:'value', unit:'kg', metric:'weighted_kg'},
+          {id:'pu_vol', name:'Tractions lestées volume', target:'3x6 @ 20-25kg', type:'check'},
+          {id:'hang_bras', name:'Suspension à un bras (max)', target:'4x max, chaque bras', type:'value', unit:'s', metric:'hang_s'},
+          {id:'gainage_a1', name:'Front lever tuck', target:'3x15-20s', type:'check'},
+        ]},
+        B:{title:'Isométrie & négatives', exercises:[
+          {id:'echauf_b1', name:'Échauffement général', target:'5-8 min', type:'check'},
+          {id:'neg_assist', name:'Négatives 1 bras assistées', target:'5x1, tempo 6-8s, élastique fin', type:'value', unit:'s', metric:'negative_s'},
+          {id:'lock_90', name:'Lock-off 1 bras à 90°', target:'4x5-8s / bras', type:'value', unit:'s', metric:'lockoff_90_s'},
+          {id:'lock_haut', name:'Lock-off 1 bras haut', target:'4x5-8s / bras', type:'value', unit:'s', metric:'lockoff_top_s'},
+          {id:'typewriter', name:'Typewriters', target:'3x4 / côté', type:'check'},
+        ]},
+        C:{title:'Complémentaire', exercises:[
+          {id:'dips', name:'Dips ou pompes lestées', target:'4x8', type:'check'},
+          {id:'curl', name:'Curl biceps lourd', target:'3x8', type:'check'},
+          {id:'pallof', name:'Gainage anti-rotation (Pallof)', target:'3x12', type:'check'},
+          {id:'doigts', name:'Suspension doigts ouverts', target:'3x20s', type:'check'},
+        ]},
+      }
+    },
+    {
+      id:'p2', name:'Phase 2 — Excentrique & isométrie', weeks:[4,8],
+      desc:"Le cœur du travail spécifique : négatives longues sans filet et échelle d'isométrie sur 3 angles articulaires. On garde un peu de lesté pour ne pas perdre en force brute.",
+      sessions:{
+        A:{title:'Force lestée', exercises:[
+          {id:'pu_lourd2', name:'Tractions lestées lourdes', target:'5x2 @ 45kg+', type:'value', unit:'kg', metric:'weighted_kg'},
+          {id:'neg_libre', name:'Négatives 1 bras libres', target:'4-5 essais/bras, tempo 8-10s', type:'value', unit:'s', metric:'negative_s'},
+          {id:'gainage_p2', name:'Front lever advanced tuck', target:'3x15-20s', type:'check'},
+        ]},
+        B:{title:'Échelle isométrique', exercises:[
+          {id:'iso_ext', name:'Lock-off extension complète', target:'3x/bras', type:'value', unit:'s', metric:'lockoff_ext_s'},
+          {id:'iso_120', name:'Lock-off à 120°', target:'3x/bras', type:'value', unit:'s', metric:'lockoff_120_s'},
+          {id:'iso_haut2', name:'Lock-off haut (verrouillage)', target:'3x/bras', type:'value', unit:'s', metric:'lockoff_top_s'},
+          {id:'explosif', name:'Tractions explosives (claquées)', target:'3x3', type:'check'},
+        ]},
+        C:{title:'Complémentaire', exercises:[
+          {id:'dips2', name:'Dips lestés', target:'4x8', type:'check'},
+          {id:'curl2', name:'Curl biceps lourd', target:'3x8', type:'check'},
+          {id:'gainage_lat', name:'Gainage latéral', target:'3x30s/côté', type:'check'},
+          {id:'mobil_epaule', name:'Mobilité épaule', target:'5 min', type:'check'},
+        ]},
+      }
+    },
+    {
+      id:'p3', name:'Phase 3 — Concentrique assisté', weeks:[9,12],
+      desc:"On attaque le sens concentrique : tractions à un bras assistées par élastique de plus en plus fin, et tractions asymétriques pour transférer la charge vers le bras fort.",
+      sessions:{
+        A:{title:'OAP assisté élastique', exercises:[
+          {id:'oap_band', name:'Tractions 1 bras assistées (bande fine)', target:'5x2-3 / bras', type:'value', unit:'reps', metric:'oap_assist_reps'},
+          {id:'pu_maintien', name:'Tractions lestées (maintien)', target:'3x3', type:'check'},
+        ]},
+        B:{title:'Asymétrique', exercises:[
+          {id:'asym', name:'Tractions asymétriques (1 main barre / 1 main anneau)', target:'4x3', type:'check'},
+          {id:'lock_final', name:'Lock-off haut', target:'4x8-10s / bras', type:'value', unit:'s', metric:'lockoff_top_s'},
+        ]},
+        C:{title:'Complémentaire', exercises:[
+          {id:'gainage_p3', name:'Front lever straddle', target:'3x10-15s', type:'check'},
+          {id:'recup', name:'Récup active / mobilité', target:'10 min', type:'check'},
+        ]},
+      }
+    },
+    {
+      id:'p4', name:'Phase 4 — Pic & tentatives', weeks:[13,16],
+      desc:"Assistance minimale, tentatives filmées à haute qualité d'exécution, et une semaine de deload toutes les 4 semaines pour arriver frais sur tes essais.",
+      sessions:{
+        A:{title:'Tentatives OAP', exercises:[
+          {id:'oap_tent', name:'Tentatives OAP (assistance minimale, filmées)', target:'5-6 tentatives qualité', type:'value', unit:'meilleure tentative (s ou reps)', metric:'oap_attempt'},
+        ]},
+        B:{title:'Isométrie de maintien', exercises:[
+          {id:'iso_maintien', name:'Lock-off haut', target:'3x10s / bras', type:'check'},
+          {id:'mobil2', name:'Mobilité + récup', target:'10 min', type:'check'},
+        ]},
+        C:{title:'Repos actif', exercises:[
+          {id:'repos', name:'Marche, étirements légers', target:'20-30 min', type:'check'},
+        ]},
+      }
+    },
+  ]
+};
+
+const WARMUP = {
+  A: [
+    {id:'w_gen_a', name:'Échauffement général', target:'3-5 min cardio léger / sauts', type:'check'},
+    {id:'w_mob_a', name:'Mobilité épaule / coude / poignet', target:'cercles de bras, rotations poignet, flexion-extension coude', type:'check'},
+    {id:'w_cuff_a', name:'Coiffe des rotateurs', target:'2x15 (élastique)', type:'check'},
+    {id:'w_fingers_a', name:'Activation doigts / avant-bras', target:'3x10-15s suspension prise ouverte', type:'check'},
+    {id:'w_ramp1_a', name:'Montée en charge — à vide', target:'1-2x reps poids du corps', type:'check'},
+    {id:'w_ramp2_a', name:'Montée en charge — léger', target:'', type:'check'},
+    {id:'w_ramp3_a', name:'Montée en charge — moyen', target:'', type:'check'},
+  ],
+  B: [
+    {id:'w_gen_b', name:'Échauffement général', target:'3-5 min cardio léger / sauts', type:'check'},
+    {id:'w_mob_b', name:'Mobilité épaule / coude / poignet', target:'cercles de bras, rotations poignet, flexion-extension coude', type:'check'},
+    {id:'w_cuff_b', name:'Coiffe des rotateurs', target:'2x15 (élastique)', type:'check'},
+    {id:'w_fingers_b', name:'Activation doigts / avant-bras', target:'3x10-15s suspension prise ouverte', type:'check'},
+    {id:'w_ramp1_b', name:'Tractions poids du corps', target:'2x5', type:'check'},
+    {id:'w_ramp2_b', name:'Suspension à un bras sous-maximale', target:'2x5-8s / bras, largement en dessous du max', type:'check'},
+  ],
+  C: [
+    {id:'w_gen_c', name:'Échauffement général léger', target:'3-5 min', type:'check'},
+    {id:'w_mob_c', name:'Mobilité articulaire', target:'2-3 min, épaules / coudes / poignets', type:'check'},
+  ],
+};
+
+const BADGES = [
+  {id:'first', icon:'🥇', name:'Premier pas', desc:'Première séance loggée', cond:(s)=>s.logs.length>=1},
+  {id:'week', icon:'📅', name:'Semaine complète', desc:'3 séances loggées en 7 jours', cond:(s)=>hasFullWeek(s)},
+  {id:'streak7', icon:'🔥', name:'Série de 7', desc:'7 jours de suite', cond:(s)=>s.streak>=7},
+  {id:'neg8', icon:'🌀', name:'Négative parfaite', desc:'Négative ≥ 8s contrôlée', cond:(s)=>bestMetric(s,'negative_s')>=8},
+  {id:'lock10', icon:'🔒', name:'Lock 10 secondes', desc:'Lock-off ≥ 10s', cond:(s)=>Math.max(bestMetric(s,'lockoff_top_s'),bestMetric(s,'lockoff_90_s'),bestMetric(s,'lockoff_120_s'),bestMetric(s,'lockoff_ext_s'))>=10},
+  {id:'w45', icon:'🏋️', name:'45kg validé', desc:'Traction lestée à 45kg+', cond:(s)=>bestMetric(s,'weighted_kg')>=45},
+  {id:'assist3', icon:'🎗️', name:'Assisté x3', desc:'3 reps assistées propres', cond:(s)=>bestMetric(s,'oap_assist_reps')>=3},
+  {id:'filmed', icon:'🎥', name:'Première tentative filmée', desc:'Une tentative OAP loggée', cond:(s)=>s.logs.some(l=>l.entries && l.entries.oap_attempt)},
+  {id:'oap', icon:'🏆', name:'TRACTION À UN BRAS', desc:'Objectif atteint', cond:(s)=>s.achieved},
+];
+
+const LEVELS = [
+  {name:'Grimpeur en herbe', min:0},
+  {name:'Tracteur assidu', min:200},
+  {name:'Chasseur de lock-off', min:600},
+  {name:'Spécialiste excentrique', min:1200},
+  {name:'Prétendant au bras unique', min:2000},
+  {name:'Unilatéral confirmé', min:3000},
+  {name:'Maître du bras unique', min:4500},
+];
+
+/* ---------------- STATE ---------------- */
+const STORAGE_KEY = 'oap_state_v1';
+let state = null;
+let currentSession = 'A';
+let currentTab = 'today';
+
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+async function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      state = JSON.parse(raw);
+      if(!state.profile) state.profile = { oneRM:40, weeklyTarget:3 };
+      return;
+    }
+  }catch(e){ /* not found or unavailable */ }
+  state = { startDate: todayISO(), xp:0, streak:0, lastLogDate:null, logs:[], achieved:false, achievedDate:null, profile:{ oneRM:40, weeklyTarget:3 } };
+  await saveState();
+}
+async function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.error('save failed', e); showToast("Sauvegarde impossible sur cet appareil/navigateur"); }
+}
+
+function hasFullWeek(s){
+  if(s.logs.length<3) return false;
+  const last7 = s.logs.slice(-7).map(l=>l.date);
+  const uniqueDays = new Set(last7);
+  return s.logs.slice(-3).length===3;
+}
+function bestMetric(s, metric){
+  let best=0;
+  s.logs.forEach(l=>{
+    if(l.entries && l.entries[metric]!==undefined){
+      const v = parseFloat(l.entries[metric]);
+      if(!isNaN(v) && v>best) best=v;
+    }
+  });
+  return best;
+}
+
+/* ---------------- 1RM-BASED TARGETS ---------------- */
+// sets/reps stay fixed, load is a % of the current best known 1RM (manual entry or best logged PR)
+const PCT_TARGETS = {
+  pu_lourd:    {sets:'5x3', pct:0.80, note:'monte à 85% en fin de phase si ça passe bien'},
+  pu_lourd2:   {sets:'5x2', pct:0.87, note:'proche du max, viser la qualité plus que le volume'},
+  pu_maintien: {sets:'3x3', pct:0.75, note:'séance de maintien, pas de PR ici'},
+  w_ramp2_a:   {sets:'1x5', pct:0.45, note:'aucune difficulté ressentie'},
+  w_ramp3_a:   {sets:'1x3', pct:0.65, note:'dernière montée avant le travail'},
+};
+function getOneRM(){
+  return Math.max(state.profile.oneRM||0, bestMetric(state,'weighted_kg'));
+}
+function computeTarget(ex){
+  const pt = PCT_TARGETS[ex.id];
+  if(!pt) return ex.target;
+  const load = (getOneRM()*pt.pct).toFixed(1);
+  return `${pt.sets} @ ${load}kg (${Math.round(pt.pct*100)}% de ton max — ${pt.note})`;
+}
+
+/* ---------------- WEEKLY SESSION COUNT ---------------- */
+function getWeekBounds(){
+  const now = new Date();
+  const day = (now.getDay()+6)%7; // 0=Monday
+  const monday = new Date(now); monday.setDate(now.getDate()-day); monday.setHours(0,0,0,0);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6); sunday.setHours(23,59,59,999);
+  return {monday, sunday};
+}
+function sessionsThisWeek(){
+  const {monday, sunday} = getWeekBounds();
+  return state.logs.filter(l=>{
+    const d = new Date(l.date);
+    return d>=monday && d<=sunday;
+  }).length;
+}
+
+/* ---------------- PHASE / WEEK LOGIC ---------------- */
+function getWeekNumber(){
+  const start = new Date(state.startDate);
+  const now = new Date();
+  const diffDays = Math.floor((now-start)/(1000*60*60*24));
+  return Math.max(1, Math.floor(diffDays/7)+1);
+}
+function getCurrentPhase(){
+  const wk = getWeekNumber();
+  for(const p of PROGRAM.phases){
+    if(wk>=p.weeks[0] && wk<=p.weeks[1]) return p;
+  }
+  return wk < PROGRAM.phases[0].weeks[0] ? PROGRAM.phases[0] : PROGRAM.phases[PROGRAM.phases.length-1];
+}
+function daysUntilNewYear(){
+  const now = new Date();
+  const end = new Date(now.getFullYear(),11,31);
+  return Math.max(0, Math.ceil((end-now)/(1000*60*60*24)));
+}
+
+/* ---------------- LEVEL / XP ---------------- */
+function getLevel(xp){
+  let lvl = LEVELS[0];
+  for(const l of LEVELS){ if(xp>=l.min) lvl=l; }
+  return lvl;
+}
+function getLevelProgress(xp){
+  const idx = LEVELS.findIndex(l=>l.name===getLevel(xp).name);
+  const cur = LEVELS[idx];
+  const next = LEVELS[idx+1];
+  if(!next) return {pct:100, next:null};
+  const pct = ((xp-cur.min)/(next.min-cur.min))*100;
+  return {pct: Math.min(100,pct), next};
+}
+
+/* ---------------- RENDER: HEADER ---------------- */
+function renderHeader(){
+  document.getElementById('countdown').innerHTML = state.achieved
+    ? `<b>Objectif atteint 🏆</b>`
+    : `<b>${daysUntilNewYear()}</b> jours avant fin d'année`;
+  const lvl = getLevel(state.xp);
+  const prog = getLevelProgress(state.xp);
+  document.getElementById('levelName').textContent = lvl.name;
+  document.getElementById('xpFill').style.width = prog.pct+'%';
+  document.getElementById('xpText').textContent = prog.next ? `${state.xp} / ${prog.next.min} XP` : `${state.xp} XP (max)`;
+  document.getElementById('streakText').innerHTML = `🔥 <b>${state.streak}</b> jour${state.streak>1?'s':''} de suite`;
+
+  const done = sessionsThisWeek();
+  const target = state.profile.weeklyTarget;
+  document.getElementById('weekLabel').textContent = `${done}/${target} séances cette semaine`;
+  document.getElementById('weekDots').innerHTML = Array.from({length:target}).map((_,i)=>
+    `<div class="weekdot ${i<done?'filled':''}"></div>`).join('');
+}
+
+/* ---------------- RENDER: TODAY ---------------- */
+function renderToday(){
+  const phase = getCurrentPhase();
+  const wk = getWeekNumber();
+  const el = document.getElementById('tab-today');
+
+  if(state.achieved){
+    el.innerHTML = `
+      <div class="card" style="text-align:center;">
+        <div style="font-size:2.2rem;">🏆</div>
+        <h3>Objectif atteint le ${state.achievedDate}</h3>
+        <p class="muted">Traction à un bras stricte validée. Tu peux continuer à logger pour entretenir le niveau, ou viser l'autre bras / plus de reps.</p>
+      </div>`;
+    return;
+  }
+
+  const session = phase.sessions[currentSession];
+  const warmup = WARMUP[currentSession];
+
+  const warmupHtml = warmup.map(ex=>{
+    const target = computeTarget(ex) || ex.target;
+    return `
+      <li class="ex">
+        <div class="ex-check" id="chk_${ex.id}" onclick="toggleCheck('${ex.id}')"></div>
+        <div class="ex-main">
+          <div class="ex-name">${ex.name}</div>
+          ${target ? `<div class="ex-target">${target}</div>` : ''}
+        </div>
+      </li>`;
+  }).join('');
+
+  let exHtml = session.exercises.map(ex=>{
+    const inputHtml = ex.type==='value'
+      ? `<div class="ex-input"><input type="number" step="0.5" id="val_${ex.id}" placeholder="0"><span>${ex.unit}</span></div>`
+      : '';
+    return `
+      <li class="ex">
+        <div class="ex-check" id="chk_${ex.id}" onclick="toggleCheck('${ex.id}')"></div>
+        <div class="ex-main">
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-target">${computeTarget(ex)}</div>
+          ${inputHtml}
+        </div>
+      </li>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="hero">
+      <div class="hero-phase">${phase.name} · Semaine ${wk}</div>
+      <div class="hero-title">Séance ${currentSession} — ${session.title}</div>
+      <div class="hero-desc">${phase.desc}</div>
+      <div class="session-picker">
+        ${['A','B','C'].map(k=>`
+          <button class="session-btn ${k===currentSession?'active':''}" onclick="selectSession('${k}')">
+            ${k} <span class="sub">${phase.sessions[k].title}</span>
+          </button>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="warmup-head" onclick="toggleWarmup()">
+        <h3>🔥 Échauffement</h3>
+        <span class="warmup-chevron ${warmupOpen?'open':''}" id="warmupChevron">▾</span>
+      </div>
+      <div class="warmup-body ${warmupOpen?'open':''}" id="warmupBody">
+        <ul class="exlist">${warmupHtml}</ul>
+        <div class="warmup-note">La montée en charge progressive compte autant que la mobilité : le tendon a besoin d'une exposition croissante à la charge, pas juste d'être "chaud".</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Exercices du jour</h3>
+      <ul class="exlist">${exHtml}</ul>
+      <button class="validate-btn" onclick="validateSession()">Valider la séance</button>
+    </div>
+    <button class="final-cta" onclick="confirmAchieved()">🏆 J'ai réussi ma traction à un bras !</button>
+  `;
+}
+
+let checkedState = {};
+let warmupOpen = true;
+function toggleWarmup(){
+  warmupOpen = !warmupOpen;
+  document.getElementById('warmupBody').classList.toggle('open', warmupOpen);
+  document.getElementById('warmupChevron').classList.toggle('open', warmupOpen);
+}
+function toggleCheck(id){
+  checkedState[id] = !checkedState[id];
+  const el = document.getElementById('chk_'+id);
+  el.classList.toggle('checked', !!checkedState[id]);
+}
+function selectSession(k){ currentSession = k; checkedState={}; renderToday(); }
+
+async function validateSession(){
+  const phase = getCurrentPhase();
+  const session = phase.sessions[currentSession];
+  const warmup = WARMUP[currentSession];
+  const entries = {};
+  let checkedCount = 0;
+  let prCount = 0;
+
+  warmup.forEach(ex=>{
+    if(checkedState[ex.id]) checkedCount++;
+  });
+
+  session.exercises.forEach(ex=>{
+    if(ex.type==='value'){
+      const inputEl = document.getElementById('val_'+ex.id);
+      const v = inputEl ? parseFloat(inputEl.value) : NaN;
+      if(!isNaN(v) && v>0){
+        entries[ex.metric] = v;
+        checkedCount++;
+        if(v > bestMetric(state, ex.metric)) prCount++;
+      }
+    } else if(checkedState[ex.id]){
+      checkedCount++;
+    }
+  });
+
+  if(checkedCount===0){
+    showToast("Coche au moins un exercice avant de valider !");
+    return;
+  }
+
+  // streak logic
+  const today = todayISO();
+  if(state.lastLogDate !== today){
+    const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+    state.streak = (state.lastLogDate===yesterday) ? state.streak+1 : 1;
+    state.lastLogDate = today;
+  }
+
+  const xpGained = 50 + checkedCount*10 + prCount*25 + Math.min(state.streak,10)*2;
+  state.xp += xpGained;
+  state.logs.push({date: today, session: currentSession, phase: phase.id, entries, xpGained});
+
+  await saveState();
+  checkedState = {};
+  showToast(`+${xpGained} XP — séance validée !${prCount>0 ? ' Nouveau record 🎉' : ''}`);
+  renderAll();
+}
+
+async function confirmAchieved(){
+  if(!confirm("Confirmer : tu as réalisé une traction à un bras stricte (sans élan) ?")) return;
+  state.achieved = true;
+  state.achievedDate = todayISO();
+  state.xp += 500;
+  await saveState();
+  document.getElementById('celebrateText').textContent = `Le ${state.achievedDate}. Tout ce travail d'excentrique et d'isométrie a payé.`;
+  document.getElementById('celebrateOverlay').classList.add('show');
+  renderAll();
+}
+function closeCelebrate(){ document.getElementById('celebrateOverlay').classList.remove('show'); }
+
+/* ---------------- RENDER: PROGRAM ---------------- */
+function renderProgram(){
+  const wk = getWeekNumber();
+  const el = document.getElementById('tab-program');
+  el.innerHTML = PROGRAM.phases.map(p=>{
+    const isLocked = wk < p.weeks[0];
+    const isDone = wk > p.weeks[1];
+    return `
+      <div class="card phase-block ${isLocked?'locked':''}">
+        <div class="phase-header">
+          <div class="pname">${isDone?'✅ ':''}${p.name}</div>
+          <div class="pweeks">Sem. ${p.weeks[0]}-${p.weeks[1]}</div>
+        </div>
+        <p class="muted">${p.desc}</p>
+        ${Object.entries(p.sessions).map(([k,s])=>`<div class="sess-mini"><b>${k}</b> — ${s.title}</div>`).join('')}
+      </div>`;
+  }).join('');
+}
+
+/* ---------------- RENDER: PROGRESS ---------------- */
+const TRACKED_METRICS = [
+  {key:'weighted_kg', label:'Lesté', unit:'kg'},
+  {key:'negative_s', label:'Négative', unit:'s'},
+  {key:'lockoff_top_s', label:'Lock haut', unit:'s'},
+  {key:'lockoff_90_s', label:'Lock 90°', unit:'s'},
+  {key:'oap_assist_reps', label:'OAP assisté', unit:'reps'},
+];
+function renderProgress(){
+  const el = document.getElementById('tab-progress');
+  if(state.logs.length===0){
+    el.innerHTML = `<div class="empty-state">Aucune séance loggée pour l'instant.<br>Valide ta première séance dans l'onglet Aujourd'hui.</div>`;
+    return;
+  }
+  let html = `<div class="card"><h3>Records actuels</h3>`;
+  TRACKED_METRICS.forEach(m=>{
+    const best = bestMetric(state, m.key);
+    if(best===0) return;
+    const max = Math.max(best, m.key==='weighted_kg'?60:(m.unit==='reps'?5:15));
+    const pct = Math.min(100,(best/max)*100);
+    html += `
+      <div class="chart-row">
+        <div class="chart-label">${m.label}</div>
+        <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct}%"><span>${best}${m.unit}</span></div></div>
+      </div>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="card"><h3>Historique (${state.logs.length} séances)</h3>`;
+  state.logs.slice().reverse().slice(0,12).forEach(l=>{
+    const entriesTxt = Object.entries(l.entries||{}).map(([k,v])=>`${k.replace(/_/g,' ')}: ${v}`).join(' · ');
+    html += `<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:.8rem;">
+      <b>${l.date}</b> — Séance ${l.session} <span class="muted">(+${l.xpGained} XP)</span>
+      ${entriesTxt ? `<div class="muted" style="margin-top:2px;">${entriesTxt}</div>` : ''}
+    </div>`;
+  });
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+/* ---------------- RENDER: BADGES ---------------- */
+function renderBadges(){
+  const el = document.getElementById('tab-badges');
+  el.innerHTML = `<div class="badge-grid">` + BADGES.map(b=>{
+    const unlocked = b.cond(state);
+    return `
+      <div class="badge ${unlocked?'unlocked':''}">
+        <div class="badge-icon">${unlocked ? b.icon : '🔒'}</div>
+        <div class="badge-name">${b.name}</div>
+        <div class="badge-desc">${b.desc}</div>
+      </div>`;
+  }).join('') + `</div>`;
+}
+
+/* ---------------- TABS / TOAST ---------------- */
+function switchTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+}
+document.querySelectorAll('.nav-btn').forEach(b=>{
+  b.addEventListener('click', ()=>switchTab(b.dataset.tab));
+});
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ---------------- SETTINGS MODAL ---------------- */
+function openSettings(){
+  document.getElementById('inputOneRM').value = state.profile.oneRM;
+  document.getElementById('inputWeeklyTarget').value = state.profile.weeklyTarget;
+  document.getElementById('settingsOverlay').classList.add('show');
+}
+function closeSettings(){
+  document.getElementById('settingsOverlay').classList.remove('show');
+}
+async function saveSettings(){
+  const rm = parseFloat(document.getElementById('inputOneRM').value);
+  const wt = parseInt(document.getElementById('inputWeeklyTarget').value);
+  if(!isNaN(rm) && rm>0) state.profile.oneRM = rm;
+  if(!isNaN(wt)) state.profile.weeklyTarget = wt;
+  await saveState();
+  closeSettings();
+  renderAll();
+  showToast('Réglages enregistrés');
+}
+document.getElementById('settingsOverlay').addEventListener('click', (e)=>{
+  if(e.target.id==='settingsOverlay') closeSettings();
+});
+
+function renderAll(){
+  renderHeader();
+  renderToday();
+  renderProgram();
+  renderProgress();
+  renderBadges();
+}
+
+/* ---------------- INIT ---------------- */
+(async function init(){
+  await loadState();
+  renderAll();
+})();
+</script>
+</body>
+</html>
